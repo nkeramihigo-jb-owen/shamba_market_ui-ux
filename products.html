@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Products – Shamba Market</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="hdr"></div>
+  <main>
+    <div id="steps"></div>
+    <div id="view"></div>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    // Check if this is the products page for buyers
+    if (page("products", "buyer")) {
+      let cat = param("cat") || "All";
+      let q = "";
+      let so = "name";
+
+      // Render initial structure
+      $("#view").innerHTML = `
+        <h2>Browse products</h2>
+        <div class="chips" id="chips"></div>
+        <div class="tools">
+          <input id="q" type="search" placeholder="Search products" aria-label="Search products">
+          <select id="so" aria-label="Sort products">
+            <option value="name">Name A–Z</option>
+            <option value="low">Price: low to high</option>
+            <option value="high">Price: high to low</option>
+          </select>
+        </div>
+        <div class="grid" id="list"></div>
+      `;
+
+      // Draw product list
+      const draw = () => {
+        // Category chips
+        $("#chips").innerHTML = CATS.map(c =>
+          `<button class="chip ${c === cat ? "on" : ""}" data-c="${c}">${c}</button>`
+        ).join("");
+
+        // Filter + sort products
+        const l = P.filter(p =>
+          (cat === "All" || p.c === cat) &&
+          p.n.toLowerCase().includes(q.toLowerCase())
+        ).sort((a, b) =>
+          so === "name" ? a.n.localeCompare(b.n) :
+          so === "low" ? a.p - b.p :
+          b.p - a.p
+        );
+
+        // Render product cards or empty message
+        $("#list").innerHTML = l.length
+          ? l.map(card).join("")
+          : `<div class="card empty" style="grid-column:1/-1">
+              No products match. Clear the search or pick another category.
+             </div>`;
+      };
+
+      // Event listeners
+      $("#chips").onclick = e => {
+        const b = e.target.closest("button");
+        if (b) {
+          cat = b.dataset.c;
+          draw();
+        }
+      };
+
+      $("#q").oninput = e => {
+        q = e.target.value;
+        draw();
+      };
+
+      $("#so").onchange = e => {
+        so = e.target.value;
+        draw();
+      };
+
+      // Initial draw
+      draw();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login – Shamba Market</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <!-- Steps navigation (currently hidden) -->
+    <!--
+    <div class="steps">
+      <span class="cur">Login</span>
+      <span>Dashboard</span>
+      <span>Browse</span>
+      <span>Details</span>
+      <span>Cart</span>
+      <span>Order</span>
+      <span>Confirmed</span>
+    </div>
+    -->
+
+    <div class="login card">
+      <h1>Welcome to Shamba Market</h1>
+      <p class="mute">Buy directly from farmers in your cooperative.</p>
+
+      <label for="rl">I am a</label>
+      <select id="rl">
+        <option value="buyer">Buyer</option>
+        <option value="farmer">Farmer</option>
+      </select>
+
+      <div id="fm" hidden>
+        <label for="fa">Farm name</label>
+        <input id="fa" value="Mukasa Farms, Mpigi">
+      </div>
+
+      <label for="em">Email</label>
+      <input id="em" type="email" value="buyer@shamba.coop" autocomplete="username">
+
+      <label for="pw">Password</label>
+      <input id="pw" type="password" value="harvest" autocomplete="current-password">
+
+      <div class="err" id="le" role="alert"></div>
+
+      <button class="btn" id="go" style="width:100%;margin-top:.5rem">Log in</button>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    // Redirect if already logged in
+    if (S.user) {
+      location.replace(S.role === "farmer" ? "farm.html" : "dashboard.html");
+    }
+
+    // Show farm name field if role is farmer
+    $("#rl").onchange = e => {
+      $("#fm").hidden = e.target.value !== "farmer";
+    };
+
+    // Login button handler
+    $("#go").onclick = () => {
+      const em = $("#em").value.trim();
+      const pw = $("#pw").value;
+      const rl = $("#rl").value;
+      const fa = $("#fa").value.trim();
+
+      // Validation
+      if (!/^\S+@\S+\.\S+$/.test(em)) {
+        $("#le").textContent = "Enter a valid email address.";
+        return;
+      }
+      if (pw.length < 4) {
+        $("#le").textContent = "Password must have at least 4 characters.";
+        return;
+      }
+      if (rl === "farmer" && !fa) {
+        $("#le").textContent = "Enter your farm name.";
+        return;
+      }
+
+      // Save session data
+      ST.set("user", em.split("@")[0].replace(/^./, c => c.toUpperCase()));
+      ST.set("role", rl);
+      ST.set("farm", rl === "farmer" ? fa : "");
+
+      // Redirect
+      location.href = rl === "farmer" ? "farm.html" : "dashboard.html";
+    };
+  </script>
+</body>
+</html>

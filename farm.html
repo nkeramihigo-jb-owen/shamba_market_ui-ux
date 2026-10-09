@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My listings – Shamba Market</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="hdr"></div>
+  <main>
+    <div id="steps"></div>
+    <div id="view"></div>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    // Check if this is the farmer listings page
+    if (page("farm", "farmer")) {
+      const draw = () => {
+        // Active listings
+        const m = P.filter(p => p.f === S.farm);
+
+        // Items sold
+        const sold = S.orders.flatMap(o => o.items).filter(i => i.f === S.farm);
+
+        // Revenue
+        const rev = sold.reduce((a, i) => a + i.t, 0);
+
+        // Render listings
+        $("#view").innerHTML = `
+          <div class="hero">
+            <h1>${S.farm}</h1>
+            <p>Manage the products you advertise to buyers.</p>
+            <a class="btn gold" href="product-form.html">Add a product</a>
+          </div>
+
+          <div class="stats">
+            <div class="card stat"><b>${m.length}</b>active listings</div>
+            <div class="card stat"><b>${sold.length}</b>items ordered</div>
+            <div class="card stat"><b>${fmt(rev)}</b>order value</div>
+          </div>
+
+          <h2>My listings</h2>
+          ${
+            m.length
+              ? `<div class="grid">
+                  ${m.map(p => `
+                    <div class="card prod">
+                      <div class="pic">${pic(p)}</div>
+                      <div class="in">
+                        <h3>${p.n}</h3>
+                        <span class="price">${fmt(p.p)} / ${p.u}</span>
+                        <span class="mute">${p.s} ${p.u} in stock</span>
+                        <div style="display:flex;gap:.8rem;align-items:center;margin-top:.5rem">
+                          <a class="btn alt" href="product-form.html?id=${p.id}">Edit</a>
+                          <button class="link" data-id="${p.id}">Delete</button>
+                        </div>
+                      </div>
+                    </div>
+                  `).join("")}
+                </div>`
+              : `<div class="card empty">
+                  You have no listings yet. Add your first product so buyers can find it.
+                </div>`
+          }
+        `;
+      };
+
+      // Handle delete action
+      $("#view").onclick = e => {
+        const b = e.target.closest(".link");
+        if (!b) return;
+
+        P.splice(P.findIndex(p => p.id == b.dataset.id), 1);
+        ST.set("products", P);
+        draw();
+        toast("Listing deleted");
+      };
+
+      // Initial draw
+      draw();
+    }
+  </script>
+</body>
+</html>

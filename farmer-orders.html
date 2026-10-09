@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Orders received – Shamba Market</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="hdr"></div>
+  <main>
+    <div id="steps"></div>
+    <div id="view"></div>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    // Check if this is the farmer orders page
+    if (page("farmer-orders", "farmer")) {
+      // Filter orders that include items from this farmer
+      const L = S.orders.filter(o => o.items.some(i => i.f === S.farm));
+
+      // Render orders list
+      $("#view").innerHTML = `
+        <h2>Orders received</h2>
+        ${
+          L.length
+            ? L.map(o => `
+                <div class="card" style="margin-bottom:.8rem">
+                  <b>${o.no}</b> · ${o.name} · ${o.method === "delivery" ? o.addr : "Depot pickup"}
+                  ${o.items
+                    .filter(i => i.f === S.farm)
+                    .map(i => `
+                      <div class="sum">
+                        <span>${i.n} × ${i.q}</span>
+                        <span>${fmt(i.t)}</span>
+                      </div>
+                    `).join("")}
+                </div>
+              `).join("")
+            : `<div class="card empty">
+                No orders yet. Orders for your products will appear here.
+              </div>`
+        }
+      `;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkout – Shamba Market</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="hdr"></div>
+  <main>
+    <div id="steps"></div>
+    <div id="view"></div>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    if (page("checkout", "buyer")) {
+      if (!count()) {
+        location.replace("cart.html");
+      } else {
+        let del = false;
+
+        $("#view").innerHTML = `
+          <h2>Checkout</h2>
+          <div class="row">
+            <div class="card">
+              <h3>Your details</h3>
+              <label for="nm">Full name</label>
+              <input id="nm" value="${S.user}">
+              <div class="err" id="e1"></div>
+
+              <label for="ph">Phone number</label>
+              <input id="ph" type="tel" placeholder="0772 123 456">
+              <div class="err" id="e2"></div>
+
+              <label for="dm">Delivery method</label>
+              <select id="dm">
+                <option value="pickup">Pick up at cooperative depot (free)</option>
+                <option value="delivery">Deliver to my address (UGX 5,000)</option>
+              </select>
+
+              <div id="ad" hidden>
+                <label for="ar">Delivery address</label>
+                <input id="ar" placeholder="Village / street, town">
+                <div class="err" id="e3"></div>
+              </div>
+
+              <label for="pm">Payment (simulated)</label>
+              <select id="pm">
+                <option>Mobile money on delivery</option>
+                <option>Cash on delivery</option>
+              </select>
+            </div>
+
+            <div class="card">
+              <h3>Order summary</h3>
+              <div id="sm"></div>
+              <button class="btn gold" style="width:100%;margin-top:1rem" id="go">Place order</button>
+              <p class="mute">No real payment is taken. This is a simulation.</p>
+            </div>
+          </div>
+        `;
+
+        const sm = () => {
+          const fee = del ? 5000 : 0;
+          $("#sm").innerHTML = Object.entries(S.cart)
+            .map(([id, q]) => `
+              <div class="sum">
+                <span>${get(id).n} × ${q}</span>
+                <span>${fmt(get(id).p * q)}</span>
+              </div>
+            `).join("") +
+            `<div class="sum"><span>Delivery</span><span>${fmt(fee)}</span></div>
+             <div class="sum tot"><span>Total</span><span>${fmt(sub() + fee)}</span></div>`;
+        };
+        sm();
+
+        $("#dm").onchange = e => {
+          del = e.target.value == "delivery";
+          $("#ad").hidden = !del;
+          sm();
+        };
+
+        $("#go").onclick = () => {
+          const nm = $("#nm").value.trim(),
+                ph = $("#ph").value.replace(/\s/g, ""),
+                ar = del ? $("#ar").value.trim() : "",
+                okP = /^(\+?256|0)\d{9}$/.test(ph);
+
+          $("#e1").textContent = nm ? "" : "Enter your full name.";
+          $("#e2").textContent = okP ? "" : "Enter a Ugandan phone number, e.g. 0772123456.";
+          if (del) $("#e3").textContent = ar.length > 3 ? "" : "Enter your delivery address.";
+
+          if (!nm || !okP || (del && ar.length <= 3)) return;
+
+          const fee = del ? 5000 : 0,
+                items = Object.entries(S.cart).map(([id, q]) => ({
+                  n: get(id).n,
+                  q,
+                  t: get(id).p * q,
+                  f: get(id).f
+                }));
+
+          const o = {
+            no: "SM-" + Math.floor(100000 + Math.random() * 900000),
+            name: nm,
+            items,
+            fee,
+            total: sub() + fee,
+            method: del ? "delivery" : "pickup",
+            addr: ar,
+            pay: $("#pm").value,
+            status: "Processing"
+          };
+
+          Object.entries(S.cart).forEach(([id, q]) => { get(id).s -= q });
+          ST.set("products", P);
+
+          S.orders.unshift(o);
+          ST.set("orders", S.orders);
+          ST.set("last", o);
+
+          S.cart = {};
+          saveCart();
+          location.href = "confirmation.html";
+        };
+      }
+    }
+  </script>
+</body>
+</html>

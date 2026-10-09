@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Product form – Shamba Market</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="hdr"></div>
+  <main>
+    <div id="steps"></div>
+    <div id="view"></div>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    // Check if product form page is valid for farmer role
+    if (page("product-form", "farmer")) {
+      const ex = get(param("id"));
+      const p = ex || { n: "", c: "Fruit", p: "", u: "kg", s: "", d: "" };
+      let img = p.img || null;
+
+      // Render form
+      $("#view").innerHTML = `
+        <h2>${ex ? "Edit product" : "Add a product"}</h2>
+        <div class="card">
+          <div class="row">
+            <div>
+              <label for="fn">Product name</label>
+              <input id="fn" value="${p.n}">
+              <div class="err" id="f1"></div>
+
+              <label for="fc">Category</label>
+              <select id="fc">
+                ${CATS.slice(1).map(c => `<option ${c === p.c ? "selected" : ""}>${c}</option>`).join("")}
+              </select>
+
+              <label for="fp">Price (UGX)</label>
+              <input id="fp" type="number" min="1" value="${p.p}">
+              <div class="err" id="f2"></div>
+
+              <label for="fu">Unit</label>
+              <input id="fu" value="${p.u}" placeholder="kg, bunch, litre">
+
+              <label for="fs">Quantity in stock</label>
+              <input id="fs" type="number" min="0" value="${p.s}">
+              <div class="err" id="f3"></div>
+            </div>
+
+            <div>
+              <label for="fd">Description</label>
+              <textarea id="fd">${p.d}</textarea>
+
+              <label for="fi">Photo</label>
+              <input id="fi" type="file" accept="image/*">
+              <div id="prev" class="prev">
+                ${img ? `<img src="${img}" alt="Photo preview">` : ""}
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:.6rem;margin-top:1rem">
+            <button class="btn" id="save">Save listing</button>
+            <a class="btn alt" href="farm.html">Cancel</a>
+          </div>
+        </div>
+      `;
+
+      // Handle photo upload + preview
+      $("#fi").onchange = e => {
+        const f = e.target.files[0];
+        if (!f) return;
+
+        const r = new FileReader();
+        r.onload = () => {
+          const im = new Image();
+          im.onload = () => {
+            const k = Math.min(1, 480 / Math.max(im.width, im.height));
+            const c = document.createElement("canvas");
+            c.width = im.width * k;
+            c.height = im.height * k;
+            c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+            img = c.toDataURL("image/jpeg", 0.8);
+            $("#prev").innerHTML = `<img src="${img}" alt="Photo preview">`;
+          };
+          im.src = r.result;
+        };
+        r.readAsDataURL(f);
+      };
+
+      // Handle save button
+      $("#save").onclick = () => {
+        const n = $("#fn").value.trim();
+        const pr = +$("#fp").value;
+        const s = $("#fs").value;
+
+        // Validation
+        $("#f1").textContent = n ? "" : "Enter a product name.";
+        $("#f2").textContent = pr > 0 ? "" : "Enter a price above 0.";
+        $("#f3").textContent = s !== "" && +s >= 0 ? "" : "Enter the quantity in stock.";
+
+        if (!n || !(pr > 0) || s === "" || +s < 0) return;
+
+        // Product data
+        const d = {
+          n,
+          c: $("#fc").value,
+          p: pr,
+          u: $("#fu").value.trim() || "kg",
+          s: +s,
+          d: $("#fd").value.trim() || "No description yet.",
+          f: S.farm,
+          img
+        };
+
+        // Save or update
+        if (ex) {
+          Object.assign(ex, d);
+        } else {
+          P.push({ id: Date.now(), e: "🧺", ...d });
+        }
+
+        ST.set("products", P);
+        location.href = "farm.html";
+      };
+    }
+  </script>
+</body>
+</html>

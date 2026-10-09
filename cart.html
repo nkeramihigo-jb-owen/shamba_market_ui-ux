@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cart – Shamba Market</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="hdr"></div>
+  <main>
+    <div id="steps"></div>
+    <div id="view"></div>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    if (page("cart", "buyer")) {
+      const draw = () => {
+        const ids = Object.keys(S.cart);
+        const b = $(".badge");
+        if (b) b.textContent = count();
+
+        if (!ids.length) {
+          $("#view").innerHTML = `
+            <div class="card empty">
+              <h2>Your cart is empty</h2>
+              <p class="mute">Add produce from the marketplace to start an order.</p>
+              <a class="btn" href="products.html">Browse products</a>
+            </div>
+          `;
+          return;
+        }
+
+        $("#view").innerHTML = `
+          <h2>Your cart</h2>
+          <div class="card scroll">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Price</th>
+                  <th>Quantity</th>
+                  <th>Total</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                ${ids.map(id => {
+                  const p = get(id), q = S.cart[id];
+                  return `
+                    <tr>
+                      <td>${p.e || "🧺"} ${p.n}<div class="mute">${p.f}</div></td>
+                      <td>${fmt(p.p)}</td>
+                      <td>
+                        <span class="qty">
+                          <button data-a="dec" data-id="${id}" aria-label="Decrease">−</button>
+                          <span>${q}</span>
+                          <button data-a="inc" data-id="${id}" aria-label="Increase">+</button>
+                        </span>
+                      </td>
+                      <td>${fmt(p.p * q)}</td>
+                      <td><button class="link" data-a="rm" data-id="${id}">Remove</button></td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card" style="margin-top:1rem">
+            <div class="sum tot">
+              <span>Subtotal</span>
+              <span>${fmt(sub())}</span>
+            </div>
+            <p class="mute">Delivery fee is calculated at checkout.</p>
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+              <a class="btn alt" href="products.html">Keep shopping</a>
+              <a class="btn" href="checkout.html">Go to checkout</a>
+            </div>
+          </div>
+        `;
+      };
+
+      $("#view").onclick = e => {
+        const b = e.target.closest("[data-a]");
+        if (!b) return;
+
+        const id = b.dataset.id, a = b.dataset.a;
+        if (a == "inc") S.cart[id] = Math.min(S.cart[id] + 1, get(id).s);
+        if (a == "dec" && --S.cart[id] < 1) delete S.cart[id];
+        if (a == "rm") delete S.cart[id];
+
+        saveCart();
+        draw();
+      };
+
+      draw();
+    }
+  </script>
+</body>
+</html>

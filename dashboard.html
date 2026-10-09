@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard – Shamba Market</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="hdr"></div>
+  <main>
+    <div id="steps"></div>
+    <div id="view"></div>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    // Check if this is the buyer dashboard page
+    if (page("dashboard", "buyer")) {
+      const o = S.orders[0]; // Latest order
+
+      // Render dashboard
+      $("#view").innerHTML = `
+        <div class="hero">
+          <h1>Hello, ${S.user}</h1>
+          <p>
+            ${P.length} products from ${new Set(P.map(p => p.f)).size} farms
+            are available today. Pick fresh produce straight from the source.
+          </p>
+          <a class="btn gold" href="products.html">Browse products</a>
+        </div>
+
+        <div class="stats">
+          <div class="card stat"><b>${P.length}</b>products listed</div>
+          <div class="card stat"><b>${CATS.length - 1}</b>categories</div>
+          <div class="card stat"><b>${count()}</b>items in your cart</div>
+          <div class="card stat"><b>${S.orders.length}</b>orders placed</div>
+        </div>
+
+        <h2>Shop by category</h2>
+        <div class="chips">
+          ${CATS.slice(1).map(c =>
+            `<a class="chip" href="products.html?cat=${encodeURIComponent(c)}">${c}</a>`
+          ).join("")}
+        </div>
+
+        <h2>Featured today</h2>
+        <div class="grid">
+          ${P.filter(p => [6, 1, 10, 4].includes(p.id)).map(card).join("")}
+        </div>
+
+        ${
+          o
+            ? `
+              <h2 style="margin-top:1.5rem">Latest order</h2>
+              <div class="card">
+                Order <b>${o.no}</b> · ${fmt(o.total)} · ${o.items.length} item(s) · ${o.status}
+              </div>
+            `
+            : ""
+        }
+      `;
+    }
+  </script>
+</body>
+</html>

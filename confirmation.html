@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Confirmation – Shamba Market</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="hdr"></div>
+  <main>
+    <div id="steps"></div>
+    <div id="view"></div>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    if (page("confirmation", "buyer")) {
+      const o = ST.get("last", null);
+
+      if (!o) {
+        location.replace("dashboard.html");
+      } else {
+        $("#view").innerHTML = `
+          <div class="card" style="text-align:center">
+            <div style="font-size:4rem" aria-hidden="true">✅</div>
+            <h1>Order confirmed</h1>
+            <p>Thank you, ${o.name}. Farmers have been notified.</p>
+            <p><b>Order number: ${o.no}</b></p>
+
+            <div style="text-align:left;max-width:460px;margin:1rem auto">
+              ${o.items.map(i => `
+                <div class="sum">
+                  <span>${i.n} × ${i.q}</span>
+                  <span>${fmt(i.t)}</span>
+                </div>
+              `).join("")}
+
+              <div class="sum">
+                <span>Delivery</span>
+                <span>${fmt(o.fee)}</span>
+              </div>
+
+              <div class="sum tot">
+                <span>Total</span>
+                <span>${fmt(o.total)}</span>
+              </div>
+
+              <p class="mute">
+                ${o.method == "delivery"
+                  ? "Delivering to: " + o.addr
+                  : "Pick up at the cooperative depot"}
+                · ${o.pay} · Ready in about 2 days.
+              </p>
+            </div>
+
+            <a class="btn" href="dashboard.html">Back to dashboard</a>
+            <a class="btn alt" href="products.html">Shop more</a>
+          </div>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>
